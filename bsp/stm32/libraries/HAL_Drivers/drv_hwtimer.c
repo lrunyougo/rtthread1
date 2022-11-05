@@ -524,8 +524,15 @@ void TIM1_BRK_TIM15_IRQHandler(void)
 }
 #endif
 
+extern void HAL_TIM_IC_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+#ifdef BSP_USING_INPUTCAPTURE
+    /* 输入捕获 */
+    HAL_TIM_IC_PeriodElapsedCallback(htim);
+#endif
+
 #ifdef BSP_USING_TIM2
     if (htim->Instance == TIM2)
     {
