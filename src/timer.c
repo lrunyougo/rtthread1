@@ -657,6 +657,8 @@ void rt_timer_check(void)
     rt_tick_t current_tick;
     rt_base_t level;
     rt_list_t list;
+    void (*temp_func)(void *parameter);
+    void *temp_parameter;
 
     RT_ASSERT(rt_interrupt_get_nest() > 0);
 
@@ -696,9 +698,11 @@ void rt_timer_check(void)
             }
             /* add timer to temporary list  */
             rt_list_insert_after(&list, &(t->row[RT_TIMER_SKIP_LIST_LEVEL - 1]));
+            temp_func = t->timeout_func;
+            temp_parameter = t->parameter;
             rt_spin_unlock_irqrestore(&_hard_spinlock, level);
             /* call timeout function */
-            t->timeout_func(t->parameter);
+            temp_func(temp_parameter);
 
             /* re-get tick */
             current_tick = rt_tick_get();
@@ -754,6 +758,8 @@ void rt_soft_timer_check(void)
     struct rt_timer *t;
     rt_base_t level;
     rt_list_t list;
+    void (*temp_func)(void *parameter);
+    void *temp_parameter;
 
     rt_list_init(&list);
     LOG_D("software timer check enter");
@@ -782,13 +788,13 @@ void rt_soft_timer_check(void)
             }
             /* add timer to temporary list  */
             rt_list_insert_after(&list, &(t->row[RT_TIMER_SKIP_LIST_LEVEL - 1]));
-
             _soft_timer_status = RT_SOFT_TIMER_BUSY;
-
+            temp_func = t->timeout_func;
+            temp_parameter = t->parameter;
             rt_spin_unlock_irqrestore(&_soft_spinlock, level);
 
             /* call timeout function */
-            t->timeout_func(t->parameter);
+            temp_func(temp_parameter);
 
             RT_OBJECT_HOOK_CALL(rt_timer_exit_hook, (t));
             LOG_D("current tick: %d", current_tick);
