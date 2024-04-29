@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2022, RT-Thread Development Team
+ * Copyright (c) 2006-2024, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -442,8 +442,10 @@ static rt_err_t _timer_start(rt_list_t *timer_list, rt_timer_t timer)
                 break;
             }
         }
+#if (RT_TIMER_SKIP_LIST_LEVEL > 1)
         if (row_lvl != RT_TIMER_SKIP_LIST_LEVEL - 1)
             row_head[row_lvl + 1] = row_head[row_lvl] + 1;
+#endif /* RT_TIMER_SKIP_LIST_LEVEL > 1 */
     }
 
     /* Interestingly, this super simple timer insert counter works very very
@@ -455,6 +457,7 @@ static rt_err_t _timer_start(rt_list_t *timer_list, rt_timer_t timer)
 
     rt_list_insert_after(row_head[RT_TIMER_SKIP_LIST_LEVEL - 1],
                          &(timer->row[RT_TIMER_SKIP_LIST_LEVEL - 1]));
+#if (RT_TIMER_SKIP_LIST_LEVEL > 1)
     for (row_lvl = 2; row_lvl <= RT_TIMER_SKIP_LIST_LEVEL; row_lvl++)
     {
         if (!(tst_nr & RT_TIMER_SKIP_LIST_MASK))
@@ -466,6 +469,7 @@ static rt_err_t _timer_start(rt_list_t *timer_list, rt_timer_t timer)
          * bits. */
         tst_nr >>= (RT_TIMER_SKIP_LIST_MASK + 1) >> 1;
     }
+#endif /* RT_TIMER_SKIP_LIST_LEVEL > 1 */
 
     timer->parent.flag |= RT_TIMER_FLAG_ACTIVATED;
 
